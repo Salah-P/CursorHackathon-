@@ -6,6 +6,8 @@ A clean Next.js + TypeScript + Tailwind starter for challenge teams: a generic A
 
 **No paid APIs are used by default** — the "Run Prototype" button calls a local mock so the template works the moment you clone it.
 
+**Cursor-ready:** the template ships with event rules in `.cursor/rules/event.mdc` — open it in [Cursor](https://cursor.com) and the AI already knows the event, the tracks and the data. There's a ⚡ *Best Use of Cursor* award.
+
 ## Quick start
 
 ```bash
