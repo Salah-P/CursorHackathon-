@@ -85,7 +85,7 @@ Full guide: [submissions repo](https://github.com/abu-dhabi-ai-proptech-challeng
 
 ## Links
 
-- 🌐 Website: https://citygeist-core.lovable.app
+- 🌐 Website: https://challenge.evoost.ai
 - 💬 Discord: https://discord.gg/jy3QDxQ3jK
 - 🐙 GitHub Org: https://github.com/abu-dhabi-ai-proptech-challenge
 - 📦 Starter kit: https://github.com/abu-dhabi-ai-proptech-challenge/starter-kit
