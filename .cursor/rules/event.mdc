@@ -21,8 +21,8 @@ one-day event. Optimize every suggestion for **demo-by-tonight**, not production
 
 ## Event data
 
-- Four synthetic CSVs, joinable on `district`:
-  `sample_parcels`, `sample_investors`, `sample_transactions`, `sample_communities`.
+- Synthetic datasets, joinable on `district`:
+  `sample_parcels`, `sample_investors`, `sample_transactions`, `sample_communities`, `districts` — plus `sample_listings` and `osm_amenities`.
 - GitHub: https://github.com/abu-dhabi-ai-proptech-challenge/starter-kit/tree/main/data
 - Hugging Face mirror: https://huggingface.co/datasets/eVoost/abu-dhabi-ai-proptech-challenge
 - The data is synthetic — never present it as real Abu Dhabi market data.
