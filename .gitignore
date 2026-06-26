@@ -24,3 +24,6 @@ dist/
 *.log
 .vercel
 *.tsbuildinfo
+
+# Anam.ai cached resource IDs (created by scripts/anam-setup.mjs)
+anam.config.json
