@@ -33,7 +33,46 @@ TABLES = {                       # variable name the LLM uses -> csv file
     "transactions": "sample_transactions.csv",
 }
 
+DATA_GUIDE = """The 7 datasets describe the Abu Dhabi real-estate market. They all join on
+the `district` column (districts is the spine — one row per district):
+
+- districts: reference table, one row per district. base_sale_aed_sqm = baseline
+  apartment sale price/sqm; gross_yield_pct = annual rental yield %;
+  infrastructure_score 0-100; area_type in {island, waterfront, central, mainland,
+  border, coastal}; profile in {premium, high, mid_high, mid, mid_affordable,
+  affordable, established, emerging, leisure, innovation, industrial};
+  latitude/longitude = district centroid; established_year.
+- amenities: REAL OpenStreetMap points of interest. category in {community,
+  mobility, healthcare, retail, services, education}; subtype = finer type
+  (park, school, clinic, bus_stop...); has lat/long + district. NOTE: "transport"
+  amenities live under category 'mobility'; clinics/hospitals/pharmacies are 'healthcare'.
+- communities: community-level quality-of-life records (several communities per
+  district). population_estimate; occupancy_rate 0-1; service_demand_index,
+  mobility_score, resident_experience_score all 0-100; optimization_opportunity =
+  suggested fix label (e.g. add_clinic_capacity, expand_retail_offering).
+- investors: investor mandates (the demand side). investor_type in {private_equity,
+  hnwi, developer, family_office, reit, sovereign_fund, institutional};
+  preferred_sector; preferred_district; capital_range_aed = band like "15M-60M" or
+  "400M-1.5B" (M=millions, B=billions); risk_profile; investment_horizon
+  (short/medium/long); strategic_fit_score 0-100.
+- listings: residential rent/sale portal listings. listing_type in {rent, sale}
+  (NOTE: a "buy"/"for-sale" listing is listing_type=='sale'); property_type
+  (studio/apartment/villa/townhouse...); size_sqm; price_aed (total);
+  price_per_sqm_aed; furnished (bool); amenities = ';'-separated tags; lat/long;
+  listed_date; status; agency_type.
+- parcels: land parcels (the supply side). land_use in {residential, mixed_use,
+  commercial, community, hospitality, industrial}; current_status in
+  {under_development, vacant, developed, reserved}; parcel_size_sqm;
+  infrastructure_score & development_potential_score 0-100; estimated_value_aed;
+  recommended_use = model-suggested best use.
+- transactions: closed deals, a 2023-01 to 2026-05 time series with seasonality.
+  date; asset_type; transaction_value_aed (total); size_sqm; price_per_sqm;
+  buyer_type. Good for trends/momentum per district."""
+
 SYSTEM = """You are a data analyst for Abu Dhabi proptech datasets.
+
+{guide}
+
 These pandas DataFrames are ALREADY loaded in memory (do not read files):
 {schemas}
 All tables join on the `district` column.
@@ -85,7 +124,7 @@ def code_agent(instruction: str) -> dict:
         temperature=0,
         response_format={"type": "json_object"},
         messages=[
-            {"role": "system", "content": SYSTEM.format(schemas=_schemas(frames))},
+            {"role": "system", "content": SYSTEM.format(guide=DATA_GUIDE, schemas=_schemas(frames))},
             {"role": "user", "content": instruction},
         ],
     )
