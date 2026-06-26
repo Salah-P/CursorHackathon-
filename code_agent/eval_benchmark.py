@@ -23,16 +23,20 @@ import os, json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 
+# this file lives in code_agent/ ; data + benchmark are one level up (../)
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_BASE = os.path.dirname(_HERE)
+
 # the model under test — set BEFORE importing code_agent so it picks it up
 AGENT_MODEL = os.environ.get("AGENT_MODEL", "gpt-4.1-nano")
 os.environ["LLM_MODEL"] = AGENT_MODEL
-os.environ.setdefault("DATA_DIR", "data")
+os.environ.setdefault("DATA_DIR", os.path.join(_BASE, "data"))
 
 import code_agent as ca          # noqa: E402  (must follow env setup above)
 from openai import OpenAI        # noqa: E402
 
 ca.MODEL = AGENT_MODEL           # belt-and-suspenders
-BENCH = os.environ.get("BENCH", "benchmark/questions.jsonl")
+BENCH = os.environ.get("BENCH", os.path.join(_BASE, "benchmark", "questions.jsonl"))
 JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "gpt-4o-mini")
 WORKERS = int(os.environ.get("WORKERS", "8"))   # parallel questions (I/O-bound API calls)
 
@@ -96,11 +100,22 @@ def main():
     with ThreadPoolExecutor(max_workers=WORKERS) as pool:
         futures = {pool.submit(run_one, q): q for q in rows}
         for fut in tqdm(as_completed(futures), total=len(rows), desc="Evaluating", unit="q"):
-            results.append(fut.result())   # detail goes to eval_results.jsonl, not the terminal
+            try:                                    # one bad worker must never abort the summary
+                results.append(fut.result())
+            except Exception as e:
+                q = futures[fut]
+                results.append({"id": q.get("id", "?"), "question": q.get("question", ""),
+                                "category": q.get("category"), "agent_answer": f"WORKER ERROR: {e}",
+                                "ground_truth": q.get("answer_value", ""), "correct": False,
+                                "reason": f"worker error: {e}", "explanation": None, "code": None})
 
     results.sort(key=lambda r: r["id"])             # restore Q01..Q30 order
     correct = sum(r["correct"] for r in results)
-    accuracy = round(correct / len(rows) * 100, 1)
+    accuracy = round(correct / len(results) * 100, 1) if results else 0.0
+
+    # print accuracy FIRST and flush, so it always shows regardless of what follows
+    print(f"\n{'=' * 50}\n  ACCURACY: {accuracy}%   ({correct}/{len(results)})   "
+          f"model = {AGENT_MODEL}\n{'=' * 50}", flush=True)
 
     def breakdown(key):                             # accuracy grouped by a field
         g = {}
@@ -112,15 +127,11 @@ def main():
 
     fails = [r["id"] for r in results if not r["correct"]]
     by_cat = breakdown("category")
-
-    print("\n" + "=" * 50)
-    print(f"  ACCURACY: {accuracy}%   ({correct}/{len(rows)})   model = {AGENT_MODEL}")
-    print("=" * 50)
-    print("  by category   :", by_cat)
-    print("  failed        :", fails)
+    print("  by category   :", by_cat, flush=True)
+    print("  failed        :", fails, flush=True)
 
     # JSONL: line 1 = summary record, then one record per question (incl. generated code)
-    with open("eval_results.jsonl", "w") as f:
+    with open(os.path.join(_HERE, "eval_results.jsonl"), "w") as f:
         summary = {"type": "summary", "model": AGENT_MODEL, "accuracy_pct": accuracy,
                    "correct": correct, "total": len(rows),
                    "by_category": by_cat, "failed_ids": fails}

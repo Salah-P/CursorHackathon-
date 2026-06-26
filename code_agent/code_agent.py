@@ -21,7 +21,9 @@ import pandas as pd
 from openai import OpenAI
 
 # ---- config ----------------------------------------------------------------
-DATA_DIR = os.environ.get("DATA_DIR", "data")
+_HERE = os.path.dirname(os.path.abspath(__file__))
+# data lives one level above this folder (../data); override with $DATA_DIR
+DATA_DIR = os.environ.get("DATA_DIR", os.path.join(_HERE, "..", "data"))
 MODEL = os.environ.get("LLM_MODEL", "gpt-4.1-nano")
 TABLES = {                       # variable name the LLM uses -> csv file
     "districts":    "districts.csv",
@@ -90,8 +92,10 @@ The python code MUST:
 """
 
 
-def _load_env(path=".env"):
-    """Load KEY=VALUE lines from .env without adding a dependency."""
+def _load_env(path=None):
+    """Load KEY=VALUE lines from .env (defaults to ../.env) without a dependency."""
+    if path is None:
+        path = os.path.join(_HERE, "..", ".env")
     if os.path.exists(path):
         for line in open(path):
             line = line.strip()
