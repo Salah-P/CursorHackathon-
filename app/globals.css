@@ -4,7 +4,37 @@
 
 /* Base styles — extend freely. Keep contrast high for the demo projector. */
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
   body {
     font-feature-settings: "ss01", "cv11";
+  }
+}
+
+@layer components {
+  /* Animated ambient glow backdrop for the black landing theme. */
+  .bg-aurora {
+    background-color: #050507;
+    background-image:
+      radial-gradient(40rem 40rem at 80% -10%, rgba(14, 165, 233, 0.18), transparent 60%),
+      radial-gradient(36rem 36rem at 10% 20%, rgba(56, 189, 248, 0.12), transparent 55%),
+      radial-gradient(30rem 30rem at 50% 120%, rgba(2, 132, 199, 0.14), transparent 60%);
+  }
+
+  .text-gradient {
+    background: linear-gradient(120deg, #ffffff 0%, #bae6fd 45%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .grid-fade {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    background-size: 56px 56px;
+    -webkit-mask-image: radial-gradient(60% 60% at 50% 30%, #000 0%, transparent 75%);
+    mask-image: radial-gradient(60% 60% at 50% 30%, #000 0%, transparent 75%);
   }
 }

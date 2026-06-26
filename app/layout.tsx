@@ -4,9 +4,9 @@ import "./globals.css";
 // Update this with your project's name and pitch — it sets the browser tab
 // title and social previews.
 export const metadata: Metadata = {
-  title: "AI PropTech Prototype — Abu Dhabi AI PropTech Challenge",
+  title: "Hakim AI — Decision Intelligence",
   description:
-    "Building the Intelligence Layer for Land, Investment and Communities.",
+    "The intelligence layer between city data and the decision. Hakim AI turns fragmented datasets into one clear answer the moment a decision is made.",
 };
 
 export default function RootLayout({
@@ -16,7 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-night-900 text-sand-50 antialiased">
+      <body className="min-h-screen bg-night-950 text-sand-50 antialiased">
         {children}
       </body>
     </html>
