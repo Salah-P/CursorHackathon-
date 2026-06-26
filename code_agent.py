@@ -22,7 +22,7 @@ from openai import OpenAI
 
 # ---- config ----------------------------------------------------------------
 DATA_DIR = os.environ.get("DATA_DIR", "data")
-MODEL = os.environ.get("LLM_MODEL", "gpt-4o")
+MODEL = os.environ.get("LLM_MODEL", "gpt-4.1-nano")
 TABLES = {                       # variable name the LLM uses -> csv file
     "districts":    "districts.csv",
     "amenities":    "osm_amenities.csv",
