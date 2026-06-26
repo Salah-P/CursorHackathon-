@@ -40,7 +40,7 @@ flowchart TD
     U["User instruction (plain English)"] --> CA["code_agent(instruction)"]
     CA --> LD["Load 7 CSVs from ../data as pandas DataFrames"]
     LD --> SP["Build system prompt:<br/>DATA_GUIDE (what each dataset is) + live column schemas"]
-    SP --> LLM{{"OpenAI LLM — gpt-4.1-nano"}}
+    SP --> LLM{{"OpenAI LLM — gpt-4o"}}
     LLM -->|returns JSON with code| EX["exec the code in a namespace<br/>holding the DataFrames (pd + 7 tables)"]
     EX --> AV["code sets two variables:<br/>answer + explanation<br/>explanation is built from the REAL computed values"]
     AV --> RET["return answer, explanation, code"]
@@ -73,18 +73,33 @@ with a per-request timeout so one stalled call can't hang the run.
 python eval_benchmark.py
 
 # knobs (all optional):
-AGENT_MODEL=gpt-4o WORKERS=16 python eval_benchmark.py
+AGENT_MODEL=gpt-4o-mini WORKERS=16 python eval_benchmark.py
 ```
 
 Output ends with:
 
 ```
 ==================================================
-  ACCURACY: NN.N%   (k/30)   model = gpt-4.1-nano
+  ACCURACY: 70.0%   (21/30)   model = gpt-4o
 ==================================================
-  by category   : {'cross-dataset': '.../13', 'single-dataset': '.../17'}
-  failed        : [...]
+  by category   : {'cross-dataset': '7/13 (54%)', 'single-dataset': '14/17 (82%)'}
+  failed        : ['Q03', 'Q08', 'Q15', 'Q17', 'Q18', 'Q21', 'Q22', 'Q23', 'Q28']
 ```
+
+## Results
+
+Latest run — **`gpt-4o`** as the agent, `gpt-4o-mini` as the judge, over all 30 questions
+(full per-question detail incl. the generated code is in `eval_results.jsonl`):
+
+| Metric | Score |
+|---|---|
+| **Overall accuracy** | **70.0%  (21/30)** |
+| Single-dataset | 82%  (14/17) |
+| Cross-dataset | 54%  (7/13) |
+
+The pattern is the expected one: the agent is strong on single-table lookups/aggregations
+and weaker on multi-dataset joins — exactly the reasoning a Decision Intelligence copilot
+most needs, so cross-dataset accuracy is the number to push.
 
 …and writes `eval_results.jsonl`. To use the agent directly:
 

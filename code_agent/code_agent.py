@@ -24,7 +24,7 @@ from openai import OpenAI
 _HERE = os.path.dirname(os.path.abspath(__file__))
 # data lives one level above this folder (../data); override with $DATA_DIR
 DATA_DIR = os.environ.get("DATA_DIR", os.path.join(_HERE, "..", "data"))
-MODEL = os.environ.get("LLM_MODEL", "gpt-4.1-nano")
+MODEL = os.environ.get("LLM_MODEL", "gpt-4o")
 TABLES = {                       # variable name the LLM uses -> csv file
     "districts":    "districts.csv",
     "amenities":    "osm_amenities.csv",

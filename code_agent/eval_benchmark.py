@@ -13,7 +13,7 @@ Run from a folder that has the benchmark, and point DATA_DIR at the 7 CSVs:
 
   export OPENAI_API_KEY=...            # or rely on ./.env
   export DATA_DIR=/path/to/starter-kit/data
-  export AGENT_MODEL=gpt-4.1-nano      # the model under test (default)
+  export AGENT_MODEL=gpt-4o            # the model under test (default)
   export JUDGE_MODEL=gpt-4o-mini       # grader (default)
   export BENCH=benchmark/questions.jsonl
   export WORKERS=8                     # parallel questions (default)
@@ -28,7 +28,7 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 _BASE = os.path.dirname(_HERE)
 
 # the model under test — set BEFORE importing code_agent so it picks it up
-AGENT_MODEL = os.environ.get("AGENT_MODEL", "gpt-4.1-nano")
+AGENT_MODEL = os.environ.get("AGENT_MODEL", "gpt-4o")
 os.environ["LLM_MODEL"] = AGENT_MODEL
 os.environ.setdefault("DATA_DIR", os.path.join(_BASE, "data"))
 
