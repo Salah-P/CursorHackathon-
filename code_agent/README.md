@@ -37,13 +37,13 @@ Paths are resolved relative to the script, so it works whether you run it from i
 
 ```mermaid
 flowchart TD
-    U["User instruction (plain English)"] --> CA["code_agent(instruction)"]
-    CA --> LD["Load 7 CSVs from ../data as pandas DataFrames"]
-    LD --> SP["Build system prompt:<br/>DATA_GUIDE (what each dataset is) + live column schemas"]
-    SP --> LLM{{"OpenAI LLM — gpt-4.1-nano"}}
-    LLM -->|returns JSON with code| EX["exec the code in a namespace<br/>holding the DataFrames (pd + 7 tables)"]
-    EX --> AV["code sets two variables:<br/>answer + explanation<br/>explanation is built from the REAL computed values"]
-    AV --> RET["return answer, explanation, code"]
+    U[User instruction in plain English] --> CA[code_agent function]
+    CA --> LD[Load 7 CSVs from ../data as DataFrames]
+    LD --> SP[Build system prompt: dataset guide plus live schemas]
+    SP --> LLM[OpenAI LLM gpt-5.5 generates pandas code]
+    LLM --> EX[Execute the code over the DataFrames]
+    EX --> AV[Code sets answer and explanation from the real computed values]
+    AV --> RET[Return answer, explanation and code]
 ```
 
 Key idea: the model never states a number from memory — it writes code that computes it,
@@ -52,14 +52,14 @@ and the explanation is assembled from those computed values, so the answer is au
 ## How the eval works
 
 ```mermaid
-flowchart LR
-    B[("../benchmark/questions.jsonl")] --> POOL["ThreadPoolExecutor<br/>(WORKERS questions in parallel)"]
-    GT["ground_truth + answer_value"] --> JG{{"LLM judge — gpt-4o-mini"}}
-    POOL --> CA["code_agent → answer + code"]
+flowchart TD
+    B[benchmark questions.jsonl] --> POOL[ThreadPoolExecutor runs questions in parallel]
+    POOL --> CA[code_agent produces answer and code]
+    GT[ground truth and answer_value] --> JG[LLM judge gpt-4o-mini compares to ground truth]
     CA --> JG
-    JG -->|correct? true / false| V["verdict per question"]
-    V --> SUM["accuracy + by-category breakdown"]
-    SUM --> OUT[("eval_results.jsonl<br/>summary line + per-question records incl. code")]
+    JG --> V[verdict correct or not]
+    V --> SUM[Overall accuracy]
+    SUM --> OUT[eval_results.jsonl summary plus per-question code]
 ```
 
 The judge tolerates rounding, phrasing, and set-matching for lists, so it grades the
@@ -73,18 +73,29 @@ with a per-request timeout so one stalled call can't hang the run.
 python eval_benchmark.py
 
 # knobs (all optional):
-AGENT_MODEL=gpt-4o WORKERS=16 python eval_benchmark.py
+AGENT_MODEL=gpt-4o-mini WORKERS=16 python eval_benchmark.py
 ```
 
 Output ends with:
 
 ```
 ==================================================
-  ACCURACY: NN.N%   (k/30)   model = gpt-4.1-nano
+  ACCURACY: 73.3%   (22/30)   model = gpt-5.5
 ==================================================
-  by category   : {'cross-dataset': '.../13', 'single-dataset': '.../17'}
-  failed        : [...]
+  failed        : ['Q03', 'Q10', 'Q21', 'Q22', 'Q23', 'Q25', 'Q28', 'Q29']
 ```
+
+## Results
+
+Latest run — **`gpt-5.5`** as the agent, `gpt-4o-mini` as the judge, over all 30 questions
+(full per-question detail incl. the generated code is in `eval_results.jsonl`):
+
+| Metric | Score |
+|---|---|
+| **Overall accuracy** | **73.3%  (22/30)** |
+
+Failed: `Q03, Q10, Q21, Q22, Q23, Q25, Q28, Q29`. The per-question answers and the exact
+generated pandas for each are in `eval_results.jsonl`.
 
 …and writes `eval_results.jsonl`. To use the agent directly:
 
