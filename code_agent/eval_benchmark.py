@@ -13,7 +13,7 @@ Run from a folder that has the benchmark, and point DATA_DIR at the 7 CSVs:
 
   export OPENAI_API_KEY=...            # or rely on ./.env
   export DATA_DIR=/path/to/starter-kit/data
-  export AGENT_MODEL=gpt-4o            # the model under test (default)
+  export AGENT_MODEL=gpt-5.5           # the model under test (default)
   export JUDGE_MODEL=gpt-4o-mini       # grader (default)
   export BENCH=benchmark/questions.jsonl
   export WORKERS=8                     # parallel questions (default)
@@ -28,7 +28,7 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 _BASE = os.path.dirname(_HERE)
 
 # the model under test — set BEFORE importing code_agent so it picks it up
-AGENT_MODEL = os.environ.get("AGENT_MODEL", "gpt-4o")
+AGENT_MODEL = os.environ.get("AGENT_MODEL", "gpt-5.5")
 os.environ["LLM_MODEL"] = AGENT_MODEL
 os.environ.setdefault("DATA_DIR", os.path.join(_BASE, "data"))
 
@@ -78,7 +78,7 @@ def run_one(q):
     except Exception as e:
         verdict = {"correct": False, "reason": f"judge error: {e}"}
     return {
-        "id": q["id"], "question": q["question"], "category": q.get("category"),
+        "id": q["id"], "question": q["question"],
         "agent_answer": answer, "ground_truth": q["answer_value"],
         "correct": bool(verdict.get("correct")), "reason": verdict.get("reason", ""),
         "explanation": explanation, "code": code,   # the agent's generated pandas
@@ -105,7 +105,7 @@ def main():
             except Exception as e:
                 q = futures[fut]
                 results.append({"id": q.get("id", "?"), "question": q.get("question", ""),
-                                "category": q.get("category"), "agent_answer": f"WORKER ERROR: {e}",
+                                "agent_answer": f"WORKER ERROR: {e}",
                                 "ground_truth": q.get("answer_value", ""), "correct": False,
                                 "reason": f"worker error: {e}", "explanation": None, "code": None})
 
@@ -113,28 +113,17 @@ def main():
     correct = sum(r["correct"] for r in results)
     accuracy = round(correct / len(results) * 100, 1) if results else 0.0
 
+    fails = [r["id"] for r in results if not r["correct"]]
+
     # print accuracy FIRST and flush, so it always shows regardless of what follows
     print(f"\n{'=' * 50}\n  ACCURACY: {accuracy}%   ({correct}/{len(results)})   "
           f"model = {AGENT_MODEL}\n{'=' * 50}", flush=True)
-
-    def breakdown(key):                             # accuracy grouped by a field
-        g = {}
-        for r in results:
-            k = r.get(key) or "?"
-            g.setdefault(k, [0, 0])
-            g[k][0] += r["correct"]; g[k][1] += 1
-        return {k: f"{c}/{t} ({c / t * 100:.0f}%)" for k, (c, t) in sorted(g.items())}
-
-    fails = [r["id"] for r in results if not r["correct"]]
-    by_cat = breakdown("category")
-    print("  by category   :", by_cat, flush=True)
     print("  failed        :", fails, flush=True)
 
     # JSONL: line 1 = summary record, then one record per question (incl. generated code)
     with open(os.path.join(_HERE, "eval_results.jsonl"), "w") as f:
         summary = {"type": "summary", "model": AGENT_MODEL, "accuracy_pct": accuracy,
-                   "correct": correct, "total": len(rows),
-                   "by_category": by_cat, "failed_ids": fails}
+                   "correct": correct, "total": len(rows), "failed_ids": fails}
         f.write(json.dumps(summary, ensure_ascii=False) + "\n")
         for r in results:
             f.write(json.dumps(r, ensure_ascii=False, default=str) + "\n")

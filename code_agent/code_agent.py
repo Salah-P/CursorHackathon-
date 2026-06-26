@@ -24,7 +24,7 @@ from openai import OpenAI
 _HERE = os.path.dirname(os.path.abspath(__file__))
 # data lives one level above this folder (../data); override with $DATA_DIR
 DATA_DIR = os.environ.get("DATA_DIR", os.path.join(_HERE, "..", "data"))
-MODEL = os.environ.get("LLM_MODEL", "gpt-4o")
+MODEL = os.environ.get("LLM_MODEL", "gpt-5.5")
 TABLES = {                       # variable name the LLM uses -> csv file
     "districts":    "districts.csv",
     "amenities":    "osm_amenities.csv",
@@ -121,10 +121,22 @@ def _client():
     )
 
 
+def _chat(client, **kwargs):
+    """Call the API; if the model rejects temperature (e.g. gpt-5.x), retry without it."""
+    try:
+        return client.chat.completions.create(**kwargs)
+    except Exception as e:
+        if "temperature" in kwargs and "temperature" in str(e).lower():
+            kwargs.pop("temperature")
+            return client.chat.completions.create(**kwargs)
+        raise
+
+
 def code_agent(instruction: str) -> dict:
     """NL instruction -> {answer, explanation, code}."""
     frames = _frames()
-    resp = _client().chat.completions.create(
+    resp = _chat(
+        _client(),
         model=MODEL,
         temperature=0,
         response_format={"type": "json_object"},
