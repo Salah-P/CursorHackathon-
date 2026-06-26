@@ -5,7 +5,7 @@ import { sampleParcels } from "@/lib/sampleData";
 // ── Set your track here ─────────────────────────────────────────────
 // One of: "land" | "investment" | "communities" | "decision"
 // The track badge and accent color follow automatically.
-const TRACK = "land";
+const TRACK = "decision";
 
 export default function Home() {
   return (
