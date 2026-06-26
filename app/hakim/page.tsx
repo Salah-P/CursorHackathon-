@@ -215,15 +215,15 @@ export default function HakimPage() {
         initial={{ opacity: 0, x: -24 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.2 }}
-        className="absolute left-6 top-1/2 z-10 w-72 max-w-[80vw] -translate-y-1/2 rounded-2xl border border-white/10 bg-black/55 p-5 backdrop-blur-md"
+        className="absolute left-6 top-1/2 z-10 w-80 max-w-[85vw] -translate-y-1/2 rounded-2xl border border-white/15 bg-black/75 p-5 shadow-2xl ring-1 ring-white/10 backdrop-blur-xl"
       >
         <div className="flex items-center gap-2">
-          <span className="h-1.5 w-1.5 rounded-full bg-accent-400" />
-          <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-400">
+          <span className="h-2 w-2 animate-glow rounded-full bg-accent-400 shadow-[0_0_10px_2px_rgba(56,189,248,0.7)]" />
+          <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-accent-400">
             Try asking
           </h2>
         </div>
-        <p className="mt-1.5 text-xs leading-relaxed text-white/50">
+        <p className="mt-1.5 text-xs leading-relaxed text-white/60">
           Click a question, or just speak it out loud.
         </p>
         <div className="mt-4 flex flex-col gap-2.5">
@@ -233,9 +233,9 @@ export default function HakimPage() {
               type="button"
               onClick={() => ask(q)}
               disabled={phase !== "live"}
-              className="group flex items-start gap-2.5 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-left text-sm leading-snug text-white/85 transition hover:border-accent-400/50 hover:bg-accent-500/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+              className="group flex items-start gap-2.5 rounded-xl border border-white/15 bg-white/[0.06] p-3 text-left text-sm leading-snug text-white/90 transition hover:border-accent-400/60 hover:bg-accent-500/15 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-500/15 text-[11px] font-semibold text-accent-400">
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-500/25 text-[11px] font-semibold text-accent-300">
                 {i + 1}
               </span>
               {q}

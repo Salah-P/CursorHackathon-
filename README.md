@@ -1,94 +1,210 @@
-# Abu Dhabi AI PropTech Challenge — Project Template
+# Hakim AI — Decision Intelligence
 
-**Building the Intelligence Layer for Land, Investment and Communities**
+**Abu Dhabi AI PropTech Challenge · Track 4: Decision Intelligence**
 
-A clean Next.js + TypeScript + Tailwind starter for challenge teams: a generic AI prototype dashboard with a hero, track badge, sample data display, and a demo panel wired for AI output. Replace the mock engine with your model and you have a demo.
+Hakim AI is a real-time, talking AI avatar that sits between raw city data and
+the decision-maker. Ask it a question out loud (or type it) and it runs a live
+analysis over the Abu Dhabi proptech datasets and answers with a clear,
+**grounded, sourced** result — the moment a decision is made.
 
-**No paid APIs are used by default** — the "Run Prototype" button calls a local mock so the template works the moment you clone it.
+![Hakim AI landing page](docs/landing.png)
 
-**Cursor-ready:** the template ships with event rules in `.cursor/rules/event.mdc` — open it in [Cursor](https://cursor.com) and the AI already knows the event, the tracks and the data. There's a ⚡ *Best Use of Cursor* award.
+---
 
-## Quick start
+## Problem & Solution
 
-```bash
-# 1. Get the code (pick one)
-#    a) Click "Use this template" on GitHub, then clone your new repo
-#    b) Or clone directly:
-git clone https://github.com/abu-dhabi-ai-proptech-challenge/project-template.git my-project
-cd my-project
+**Problem** — The hardest part of city data isn't collecting it; it's getting a
+clear answer out of it at the moment a decision is made. Decision-makers drown
+in dashboards and disconnected spreadsheets while the actual answer stays buried.
 
-# 2. Install and run
-npm install
-npm run dev
+**Solution** — Hakim AI is the intelligence layer between the data and the
+decision. A conversational avatar takes a plain-language question, runs real
+analysis across joined datasets (districts, parcels, listings, transactions,
+investors, communities, amenities), and speaks back **one clear answer plus the
+source it came from** — so the answer is explainable and never hallucinated.
+
+![Hakim AI live avatar](docs/hakim.png)
+
+---
+
+## How it works
+
+> **Important:** this app has **two processes** — a Next.js web app *and* a
+> Python "code agent" sidecar. The avatar can only **answer questions** when
+> both are running. See [Why isn't it working?](#why-isnt-it-working) below.
+
+The avatar's brain is a built-in LLM. For any factual or quantitative question
+it is required to call the `analyze_dataset` tool. That tool call travels:
+
+```mermaid
+flowchart LR
+  U["User speaks / types"] --> A["Anam avatar + LLM brain"]
+  A -->|"calls analyze_dataset"| H["Browser tool handler"]
+  H --> R["/api/hakim/analyze (Next.js)"]
+  R -->|"HTTP POST localhost:8000"| P["Python sidecar (FastAPI)"]
+  P --> C["code_agent: LLM writes pandas -> runs on CSVs"]
+  C -->|"answer + explanation + source"| A
+  A -->|"speaks grounded answer"| U
 ```
 
-Open <http://localhost:3000>. You should see the dashboard with sample parcel data and a working (mocked) Run Prototype flow.
+- **Avatar / voice / streaming:** [Anam.ai](https://anam.ai) (`@anam-ai/js-sdk`, WebRTC).
+- **Web app:** Next.js 14 (landing page, `/hakim` avatar page, API routes).
+- **Data analysis:** `code_agent()` in [`code_agent/code_agent.py`](code_agent/code_agent.py) —
+  an LLM writes **pandas** over `data/*.csv`, the code is executed, and the
+  answer + an explanation built from the *real computed values* + the data
+  sources are returned. It is served over HTTP by
+  [`code_agent/server.py`](code_agent/server.py) (FastAPI on port `8000`).
+- **The Next.js route is a proxy:** [`app/api/hakim/analyze/route.ts`](app/api/hakim/analyze/route.ts)
+  forwards each question to the Python sidecar at `AGENT_URL` (default
+  `http://localhost:8000`).
+- **Keys stay server-side:** the Anam session token is minted in a Next.js API
+  route; the OpenAI key is only used by the Python sidecar. No secrets reach the
+  browser.
 
-## Customize it
+---
 
-1. **Set your track** — edit the `track` value in `app/page.tsx` (`land` | `investment` | `communities` | `decision`). The badge and accent color follow.
-2. **Name your project** — title and description in `components/Hero.tsx` and `app/layout.tsx`.
-3. **Bring your data** — `lib/sampleData.ts` ships with parcel rows from the starter kit. Replace with whatever your prototype consumes.
-4. **Connect your AI** — `components/DemoPanel.tsx` contains `runPrototype()`, a mock engine with clearly marked hooks for:
-   - OpenAI
-   - Anthropic (Claude)
-   - Hugging Face Inference
-   - Local models (Ollama / llama.cpp)
-   - Your own API
-5. **Keep keys out of git** — copy `.env.example` to `.env.local` and put keys there. For real key security, move model calls into a [route handler](https://nextjs.org/docs/app/building-your-application/routing/route-handlers) (`app/api/run/route.ts`) so keys stay server-side.
+## Tech stack
+
+- Next.js 14 (App Router) + TypeScript + Tailwind CSS
+- Framer Motion (animated landing + overlays)
+- Anam.ai JavaScript SDK (real-time avatar)
+- Python + FastAPI + pandas (the code agent sidecar)
+- OpenAI (the code agent's LLM)
+
+---
 
 ## Project structure
 
 ```
 app/
-  layout.tsx        Root layout + metadata
-  page.tsx          The dashboard page — set your track here
-  globals.css       Tailwind + base styles
-components/
-  Hero.tsx          Event-branded header — put your project name here
-  TrackBadge.tsx    Colored badge for your chosen track
-  DemoPanel.tsx     Input → "Run Prototype" → AI output. Connect your model here.
-lib/
-  sampleData.ts     Typed sample data + the mock inference engine
-docs/
-  architecture.md   How the pieces fit, and patterns for adding an API layer
-  demo-script.md    A 3-minute demo script skeleton to fill in
+  page.tsx                     Animated landing page (Problem / Solution + CTA)
+  hakim/page.tsx               Full-screen avatar experience + sample questions
+  api/anam/session/route.ts    Mints an Anam session token (server-side key)
+  api/hakim/analyze/route.ts   PROXIES the question to the Python sidecar (AGENT_URL)
+code_agent/
+  code_agent.py                NL question -> pandas over CSVs -> grounded answer
+  server.py                    FastAPI sidecar exposing POST /analyze (port 8000)
+  requirements.txt             Python deps (fastapi, uvicorn, pandas, openai)
+scripts/
+  anam-setup.mjs               One-time: create avatar, voice, tool, persona -> anam.config.json
+data/                          Synthetic Abu Dhabi proptech datasets (CSV)
+docs/                          Screenshots
 ```
 
-## Suggested structure as you grow
+---
 
+## Run it locally
+
+### 1. Prerequisites
+- Node.js 18+
+- **Python 3.10+** (the code agent runs in Python)
+- An [Anam.ai](https://anam.ai) API key and an [OpenAI](https://platform.openai.com) API key
+
+### 2. Install dependencies
+```bash
+npm install
+pip install -r code_agent/requirements.txt   # <-- required, or Hakim can't answer
 ```
-app/api/run/route.ts    Server-side model calls (keeps keys off the client)
-lib/engine.ts           Your actual scoring/matching/reasoning logic
-lib/types.ts            Shared types as data outgrows sampleData.ts
-components/...          One component per panel — keep page.tsx thin
+
+### 3. Add your keys
+Create `.env` (or `.env.local`) in the project root:
+```bash
+ANAM_API_KEY=your-anam-key
+OPENAI_API_KEY=your-openai-key
 ```
 
-## Example ideas per track
+### 4. Provision the avatar (one time)
+```bash
+npm run setup:anam
+```
+This creates the **avatar** (from `public/hakim.png`), picks a **voice**, creates
+the **`analyze_dataset`** tool, and creates the **Hakim AI persona**, caching all
+IDs in `anam.config.json`. It is idempotent — re-running is a no-op. (It also runs
+automatically via `predev`.)
 
-| Track | Ideas |
+### 5. Start (web + Python sidecar together)
+```bash
+npm run dev
+```
+`npm run dev` uses `concurrently` to start **both** the Next.js web app
+(`localhost:3000`) **and** the Python sidecar (`localhost:8000`). Open
+<http://localhost:3000>, click **Try Hakim AI**, allow the microphone, and ask one
+of the sample questions — or just talk to Hakim.
+
+> **macOS note:** if `npm run dev` floods with `EMFILE: too many open files`,
+> raise the limit first: `ulimit -n 10240`.
+
+---
+
+## Why isn't it working?
+
+If the avatar connects and talks but **can't answer any question** (you see an
+`agent_unreachable` or `agent_failed` error, or it just says it couldn't run the
+analysis), it's almost always one of these:
+
+1. **The Python sidecar isn't running.** The answer comes from
+   `code_agent/server.py` on `localhost:8000`. `npm run dev` starts it, but if you
+   ran only `next dev` (or the sidecar crashed), there's nothing to answer.
+   Start it on its own with `npm run agent` and check it's healthy:
+   ```bash
+   curl http://localhost:8000/health        # -> {"ok": true}
+   ```
+2. **Python deps weren't installed.** Run
+   `pip install -r code_agent/requirements.txt`. Without `pandas`/`fastapi`/`openai`
+   the sidecar fails to start.
+3. **`OPENAI_API_KEY` is missing.** The code agent calls OpenAI to write the
+   analysis code. Set it in `.env` and restart.
+4. **You deployed to Vercel.** See below — the Python sidecar does **not** run on
+   Vercel by default, so analysis fails in production even though the avatar loads.
+
+---
+
+## Deploy
+
+The front end (landing page + Anam avatar) deploys to **Vercel** with no changes.
+But **Vercel only runs the Next.js app — it does not run the Python sidecar**, so
+out of the box Hakim will load and talk but every question returns
+`agent_unreachable` (it's trying to reach `localhost:8000`, which doesn't exist in
+production).
+
+To make answers work in production you must **host the Python code agent
+somewhere** (Render, Railway, Fly.io, a VM, etc.) and point the web app at it:
+
+1. Deploy `code_agent/` (with `requirements.txt` and the `data/` folder) as a
+   FastAPI service. Set `OPENAI_API_KEY` there.
+2. In Vercel, set these **Environment Variables** (Production):
+
+| Name | Value |
 |---|---|
-| 🗺️ **Land Intelligence** | Parcel scoring with explained rankings · natural-language land search · "what should be built here" recommender |
-| 💼 **Investment Intelligence** | Investor–asset matching with fit scores · deal memo generator · district momentum analyzer |
-| 🏙️ **Future Communities** | Service demand forecaster · resident experience explainer · community-fit matching |
-| 🧭 **Decision Intelligence** | Cross-dataset Q&A copilot with sources · automated morning briefing · scenario simulator |
+| `ANAM_API_KEY` | your Anam key |
+| `ANAM_PERSONA_ID` | the `personaId` from `anam.config.json` |
+| `AGENT_URL` | the public URL of your deployed Python sidecar |
 
-Sample datasets for all four live in the [starter kit](https://github.com/abu-dhabi-ai-proptech-challenge/starter-kit/tree/main/data).
+`anam.config.json` is gitignored, so `ANAM_PERSONA_ID` is **required** on Vercel
+(the session route falls back to the local file only when running locally). Then
+redeploy.
 
-## How to submit
+> Want a single-deploy, no-Python production build instead? The code agent would
+> need to be ported to TypeScript and called directly inside
+> `app/api/hakim/analyze/route.ts`. That isn't in the current code.
 
-1. Push your project to your own GitHub repo (this template's "Use this template" flow does that for you).
-2. Deploy if you can (`vercel deploy` works out of the box) or record a 2–3 minute walkthrough.
-3. Before the deadline, open an Issue in the [`submissions`](https://github.com/abu-dhabi-ai-proptech-challenge/submissions) repo using the **Project Submission** form.
+---
 
-Full guide: [submissions repo](https://github.com/abu-dhabi-ai-proptech-challenge/submissions).
+## Try these questions
 
-## Links
+- Which district has the highest gross rental yield, and what is that yield?
+- What is the average base sale price per square meter across all 20 districts?
+- Rank the top 5 districts by infrastructure score.
 
-- 🌐 Website: https://challenge.evoost.ai
-- 💬 Discord: https://discord.gg/jy3QDxQ3jK
-- 🐙 GitHub Org: https://github.com/abu-dhabi-ai-proptech-challenge
-- 📦 Starter kit: https://github.com/abu-dhabi-ai-proptech-challenge/starter-kit
+---
+
+## Notes
+
+- The datasets are **synthetic** demo data for the challenge — not real Abu Dhabi
+  market data.
+- The code agent executes LLM-generated code server-side. That's fine for a
+  hackathon demo, but it is arbitrary code execution — don't leave it deployed
+  long-term on a sensitive account.
 
 ---
 
