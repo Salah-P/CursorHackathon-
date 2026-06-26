@@ -113,6 +113,7 @@ def _client():
     return OpenAI(
         api_key=os.environ.get("LLM_API_KEY") or os.environ["OPENAI_API_KEY"],
         base_url=os.environ.get("LLM_BASE_URL") or None,
+        timeout=60, max_retries=2,
     )
 
 

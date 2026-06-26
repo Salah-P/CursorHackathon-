@@ -38,7 +38,8 @@ WORKERS = int(os.environ.get("WORKERS", "8"))   # parallel questions (I/O-bound 
 
 ca._load_env()                   # load keys from ./.env if present
 _judge = OpenAI(api_key=os.environ.get("LLM_API_KEY") or os.environ["OPENAI_API_KEY"],
-                base_url=os.environ.get("LLM_BASE_URL") or None)
+                base_url=os.environ.get("LLM_BASE_URL") or None,
+                timeout=60, max_retries=2)
 
 
 def grade(question, ground_truth, gt_value, agent_answer):
@@ -95,10 +96,7 @@ def main():
     with ThreadPoolExecutor(max_workers=WORKERS) as pool:
         futures = {pool.submit(run_one, q): q for q in rows}
         for fut in tqdm(as_completed(futures), total=len(rows), desc="Evaluating", unit="q"):
-            r = fut.result()
-            results.append(r)
-            tqdm.write(f"{r['id']} {'PASS' if r['correct'] else 'FAIL'} "
-                       f"| agent={r['agent_answer']} | gt={r['ground_truth']}")
+            results.append(fut.result())   # detail goes to eval_results.jsonl, not the terminal
 
     results.sort(key=lambda r: r["id"])             # restore Q01..Q30 order
     correct = sum(r["correct"] for r in results)
