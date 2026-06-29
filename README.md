@@ -1,11 +1,11 @@
-# Hakim AI — Decision Intelligence
+# Hakim AI: Decision Intelligence
 
 **Abu Dhabi AI PropTech Challenge · Track 4: Decision Intelligence**
 
 Hakim AI is a real-time, talking AI avatar that sits between raw city data and
 the decision-maker. Ask it a question out loud (or type it) and it runs a live
 analysis over the Abu Dhabi proptech datasets and answers with a clear,
-**grounded, sourced** result — the moment a decision is made.
+**grounded, sourced** result, the moment a decision is made.
 
 ![Hakim AI landing page](docs/landing.png)
 
@@ -19,15 +19,15 @@ analysis over the Abu Dhabi proptech datasets and answers with a clear,
 
 ## Problem & Solution
 
-**Problem** — The hardest part of city data isn't collecting it; it's getting a
+**Problem**: The hardest part of city data isn't collecting it; it's getting a
 clear answer out of it at the moment a decision is made. Decision-makers drown
 in dashboards and disconnected spreadsheets while the actual answer stays buried.
 
-**Solution** — Hakim AI is the intelligence layer between the data and the
+**Solution**: Hakim AI is the intelligence layer between the data and the
 decision. A conversational avatar takes a plain-language question, runs real
 analysis across joined datasets (districts, parcels, listings, transactions,
 investors, communities, amenities), and speaks back **one clear answer plus the
-source it came from** — so the answer is explainable and never hallucinated.
+source it came from**, so the answer is explainable and never hallucinated.
 
 ![How Hakim AI works](docs/hakim_flow.png)
 
@@ -35,7 +35,7 @@ source it came from** — so the answer is explainable and never hallucinated.
 
 ## How it works
 
-> **Important:** this app has **two processes** — a Next.js web app *and* a
+> **Important:** this app has **two processes**: a Next.js web app *and* a
 > Python "code agent" sidecar. The avatar can only **answer questions** when
 > both are running. See [Why isn't it working?](#why-isnt-it-working) below.
 
@@ -55,7 +55,7 @@ flowchart LR
 
 - **Avatar / voice / streaming:** [Anam.ai](https://anam.ai) (`@anam-ai/js-sdk`, WebRTC).
 - **Web app:** Next.js 14 (landing page, `/hakim` avatar page, API routes).
-- **Data analysis:** `code_agent()` in [`code_agent/code_agent.py`](code_agent/code_agent.py) —
+- **Data analysis:** `code_agent()` in [`code_agent/code_agent.py`](code_agent/code_agent.py),
   an LLM writes **pandas** over `data/*.csv`, the code is executed, and the
   answer + an explanation built from the *real computed values* + the data
   sources are returned. It is served over HTTP by
@@ -125,7 +125,7 @@ npm run setup:anam
 ```
 This creates the **avatar** (from `public/hakim.png`), picks a **voice**, creates
 the **`analyze_dataset`** tool, and creates the **Hakim AI persona**, caching all
-IDs in `anam.config.json`. It is idempotent — re-running is a no-op. (It also runs
+IDs in `anam.config.json`. It is idempotent, re-running is a no-op. (It also runs
 automatically via `predev`.)
 
 ### 5. Start (web + Python sidecar together)
@@ -135,7 +135,7 @@ npm run dev
 `npm run dev` uses `concurrently` to start **both** the Next.js web app
 (`localhost:3000`) **and** the Python sidecar (`localhost:8000`). Open
 <http://localhost:3000>, click **Try Hakim AI**, allow the microphone, and ask one
-of the sample questions — or just talk to Hakim.
+of the sample questions, or just talk to Hakim.
 
 > **macOS note:** if `npm run dev` floods with `EMFILE: too many open files`,
 > raise the limit first: `ulimit -n 10240`.
@@ -160,7 +160,7 @@ analysis), it's almost always one of these:
    the sidecar fails to start.
 3. **`OPENAI_API_KEY` is missing.** The code agent calls OpenAI to write the
    analysis code. Set it in `.env` and restart.
-4. **You deployed to Vercel.** See below — the Python sidecar does **not** run on
+4. **You deployed to Vercel.** See below: the Python sidecar does **not** run on
    Vercel by default, so analysis fails in production even though the avatar loads.
 
 ---
@@ -168,7 +168,7 @@ analysis), it's almost always one of these:
 ## Deploy
 
 The front end (landing page + Anam avatar) deploys to **Vercel** with no changes.
-But **Vercel only runs the Next.js app — it does not run the Python sidecar**, so
+But **Vercel only runs the Next.js app, it does not run the Python sidecar**, so
 out of the box Hakim will load and talk but every question returns
 `agent_unreachable` (it's trying to reach `localhost:8000`, which doesn't exist in
 production).
@@ -206,10 +206,10 @@ redeploy.
 
 ## Notes
 
-- The datasets are **synthetic** demo data for the challenge — not real Abu Dhabi
+- The datasets are **synthetic** demo data for the challenge, not real Abu Dhabi
   market data.
 - The code agent executes LLM-generated code server-side. That's fine for a
-  hackathon demo, but it is arbitrary code execution — don't leave it deployed
+  hackathon demo, but it is arbitrary code execution, don't leave it deployed
   long-term on a sensitive account.
 
 ---
