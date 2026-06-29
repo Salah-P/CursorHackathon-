@@ -1,29 +1,11 @@
-# Hakim AI — `code_agent`
+# code_agent
 
-A conversational data agent over the 7 Abu Dhabi proptech datasets, plus a harness that
-evaluates it against the benchmark.
+A tiny **NL → code → answer** agent over the 7 Abu Dhabi proptech datasets, plus a
+harness that evaluates it against the benchmark.
 
 Give it a plain-language question; an LLM writes pandas code, the code runs against the
 real CSVs, and you get back the **answer**, a **grounded explanation** (built from the
 values the code actually computed, so it can't be hallucinated), and the **generated code**.
-
-## Problem & Solution
-
-**Problem** — The hardest part of city data isn't collecting it; it's getting a clear
-answer out of it at the moment a decision is made. Decision-makers drown in dashboards and
-disconnected spreadsheets while the actual answer stays buried.
-
-**Solution** — **Hakim AI** is the intelligence layer between the data and the decision. A
-conversational avatar takes a plain-language question, runs real analysis across joined
-datasets (districts, parcels, listings, transactions, investors, communities, amenities),
-and speaks back one clear answer plus the source it came from — so the answer is
-explainable and never hallucinated.
-
-## 🎥 Demo
-
-[![Watch the Hakim AI demo](https://img.youtube.com/vi/jFkEldf3WPE/hqdefault.jpg)](https://youtu.be/jFkEldf3WPE)
-
-▶️ **[Watch the demo video on YouTube](https://youtu.be/jFkEldf3WPE)**
 
 ## Files
 
@@ -45,9 +27,7 @@ cursor_hackathon/
 └── code_agent/          # <- you are here
     ├── code_agent.py
     ├── eval_benchmark.py
-    ├── eval_results.jsonl
-    ├── hakim_ai.png
-    └── README.md
+    └── eval_results.jsonl
 ```
 
 Paths are resolved relative to the script, so it works whether you run it from inside
@@ -55,12 +35,16 @@ Paths are resolved relative to the script, so it works whether you run it from i
 
 ## How the agent works
 
-![Hakim AI — how it works](hakim_ai.png)
-
-The full pipeline: **ask** (voice or text) → speech-to-text → **understand** the intent →
-**load** the 7 CSVs as DataFrames → **build** the prompt (dataset guide + live schemas) →
-**generate** pandas code with the LLM (gpt-5.5) → **execute** it in a sandbox over the
-DataFrames → **answer + explain** with the key results → **respond** (voice or text).
+```mermaid
+flowchart TD
+    U[User instruction in plain English] --> CA[code_agent function]
+    CA --> LD[Load 7 CSVs from ../data as DataFrames]
+    LD --> SP[Build system prompt: dataset guide plus live schemas]
+    SP --> LLM[OpenAI LLM gpt-5.5 generates pandas code]
+    LLM --> EX[Execute the code over the DataFrames]
+    EX --> AV[Code sets answer and explanation from the real computed values]
+    AV --> RET[Return answer, explanation and code]
+```
 
 Key idea: the model never states a number from memory — it writes code that computes it,
 and the explanation is assembled from those computed values, so the answer is auditable.

@@ -9,6 +9,12 @@ analysis over the Abu Dhabi proptech datasets and answers with a clear,
 
 ![Hakim AI landing page](docs/landing.png)
 
+## 🎥 Demo
+
+[![Watch the Hakim AI demo](https://img.youtube.com/vi/jFkEldf3WPE/hqdefault.jpg)](https://youtu.be/jFkEldf3WPE)
+
+▶️ **[Watch the demo video on YouTube](https://youtu.be/jFkEldf3WPE)**
+
 ---
 
 ## Problem & Solution
@@ -23,7 +29,7 @@ analysis across joined datasets (districts, parcels, listings, transactions,
 investors, communities, amenities), and speaks back **one clear answer plus the
 source it came from** — so the answer is explainable and never hallucinated.
 
-![Hakim AI live avatar](docs/hakim.png)
+![How Hakim AI works](docs/hakim_flow.png)
 
 ---
 
